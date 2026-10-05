@@ -36,7 +36,6 @@ jobs:
         working-directory: backend
         env:
           SECRET_KEY: ci-test-secret-key-not-for-production-use-only
-          DATABASE_URL: sqlite+aiosqlite:///./test.db
           ENVIRONMENT: test
         run: pytest tests/ -v --tb=short
 
