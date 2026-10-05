@@ -17,7 +17,6 @@ from __future__ import annotations
 import ast
 import configparser
 import json
-import re
 import subprocess
 import sys
 import tomllib
@@ -202,10 +201,7 @@ def check_sql(path: Path, text: str, relative: str, report: Report) -> None:
     without_comments = "\n".join(
         line.split("--", 1)[0] for line in text.splitlines()
     )
-    # Age bands in this dataset are written '[60-70)', so a literal can carry a
-    # bracket that is not part of the syntax. Strip quoted text before counting.
-    outside_literals = re.sub(r"'(?:[^']|'')*'", "''", without_comments)
-    if outside_literals.count("(") != outside_literals.count(")"):
+    if without_comments.count("(") != without_comments.count(")"):
         report.fail(
             "Unbalanced parentheses in SQL",
             path=relative,

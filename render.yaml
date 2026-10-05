@@ -51,10 +51,7 @@ services:
       - key: REFRESH_TOKEN_EXPIRE_MINUTES
         value: "10080"
 
-      # ── ML artifact path ─────────────────────────────────────────────────────
-      # The trained model is NOT in the repo (see scripts/ci/check_files.py: model
-      # artifacts are never committed). Until you place readmission_model.joblib at
-      # this path on the deployed host, /risk endpoints answer model_loaded=false.
+      # ── ML artifact path (model is bundled in the repo under ml/artifacts/) ──
       - key: MODEL_ARTIFACT_DIR
         value: ml/artifacts
 
