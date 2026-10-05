@@ -122,7 +122,7 @@ def seed_users(db: Session, password: str) -> list[User]:
             UserCreate(
                 email=email,
                 full_name=full_name,
-                # role=role,
+                role=role,
                 department=department,
                 password=password,
             ),
@@ -228,6 +228,7 @@ def main() -> int:
     generated = password is None
     if generated:
         password = secrets.token_urlsafe(16)
+    assert password is not None
 
     create_schema()
 

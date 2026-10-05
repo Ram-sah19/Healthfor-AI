@@ -173,7 +173,9 @@ def add_treatment(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Patient not found")
     treatment = payload.get("treatment", "").strip()
     if not treatment:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Treatment is required")
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Treatment is required"
+        )
     history = list(patient.treatment_history or [])
     history.append(treatment)
     patient.treatment_history = history
