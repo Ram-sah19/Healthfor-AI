@@ -16,6 +16,7 @@ import secrets
 import sys
 from datetime import date, timedelta
 
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import logger
@@ -106,6 +107,39 @@ def create_schema() -> None:
     """Create every table that does not already exist."""
     Base.metadata.create_all(bind=engine)
     logger.info("Schema ready: %s", ", ".join(sorted(Base.metadata.tables)))
+
+
+def resync_primary_key_sequences() -> None:
+    """Advance each integer primary key sequence past the rows already stored.
+
+    A restored or manually populated database holds ids that never came from the
+    sequence, so the sequence is still at 1 while row 1 exists and the next insert
+    dies on a unique violation. This runs before every seed, so a deploy repairs
+    that instead of failing on it.
+    """
+    if engine.dialect.name != "postgresql":
+        return
+
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if table.primary_key.columns.keys() != ["id"]:
+                continue
+
+            sequence = conn.execute(
+                text("SELECT pg_get_serial_sequence(:table_name, 'id')"),
+                {"table_name": table.name},
+            ).scalar()
+            if sequence is None:
+                continue
+
+            conn.execute(
+                text(
+                    f"SELECT setval(:sequence::regclass, "
+                    f"(SELECT COALESCE(MAX(id), 0) + 1 FROM {table.name}), false)"
+                ),
+                {"sequence": sequence},
+            )
+            logger.info("Resynced %s to the row count of %s", sequence, table.name)
 
 
 def seed_users(db: Session, password: str) -> list[User]:
@@ -231,6 +265,7 @@ def main() -> int:
     assert password is not None
 
     create_schema()
+    resync_primary_key_sequences()
 
     with SessionLocal() as db:
         # Read the values inside the session: the ORM objects are detached once
