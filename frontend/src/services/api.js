@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-// Get base URL from environment variables, fallback is handy for staging/local dev environments
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+// A hosted build from a clean clone has no .env files, so the fallback has to be
+// the deployed API - defaulting to a laptop makes every deployed request call
+// the visitor's own localhost and land in the mock-auth path.
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  (import.meta.env.PROD ? 'https://healthfor-ai.onrender.com/api/v1' : 'http://localhost:8000/api/v1');
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
