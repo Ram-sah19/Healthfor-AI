@@ -132,12 +132,14 @@ def resync_primary_key_sequences() -> None:
             if sequence is None:
                 continue
 
+            # CAST() rather than :name::regclass: text() mis-lexes a bind token
+            # that is immediately followed by ::, leaving the colon in the SQL.
             conn.execute(
                 text(
-                    f"SELECT setval(:sequence::regclass, "
+                    f"SELECT setval(CAST(:sequence_name AS regclass), "
                     f"(SELECT COALESCE(MAX(id), 0) + 1 FROM {table.name}), false)"
                 ),
-                {"sequence": sequence},
+                {"sequence_name": sequence},
             )
             logger.info("Resynced %s to the row count of %s", sequence, table.name)
 
