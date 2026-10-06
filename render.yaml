@@ -39,9 +39,9 @@ services:
       - key: API_V1_PREFIX
         value: /api/v1
 
-      # ── CORS: replace with your actual Cloudflare Pages domain ───────────────
+      # ── CORS: the browser origins allowed to call this API ────────────────────
       - key: BACKEND_CORS_ORIGINS
-        value: https://healthforecast-ai.pages.dev
+        value: https://healthfor-ai.ram6070246.workers.dev,http://localhost:5173
 
       # ── JWT ───────────────────────────────────────────────────────────────────
       - key: JWT_ALGORITHM
