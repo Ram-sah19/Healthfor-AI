@@ -15,10 +15,11 @@ from app.models.audit_log import AuditLog
 from app.models.user import User
 from app.schemas.user import UserCreate
 
-# Hashed once at import so an unknown email costs a single verify(), the same as
-# a wrong password. Hashing a placeholder per request instead would double the
-# cost of every failed login.
-TIMING_EQUALISER_HASH = hash_password("timing-equalising-placeholder")
+# A bcrypt hash of "timing-equalising-placeholder", cost 12. Stored as a literal
+# so it costs nothing at import; hashing per request would put that work on every
+# failed login instead. An unknown email verifies against it, so an unknown
+# address and a wrong password take the same time and cannot be told apart.
+TIMING_EQUALISER_HASH = "$2b$12$tTgCqMgvbBKXsDZOO.wzLuyKXX015.0H5mknbLDTjchR/FUTfwRWO"
 
 
 def record_audit(
