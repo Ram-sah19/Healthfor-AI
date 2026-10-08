@@ -15,6 +15,11 @@ from app.models.audit_log import AuditLog
 from app.models.user import User
 from app.schemas.user import UserCreate
 
+# Hashed once at import so an unknown email costs a single verify(), the same as
+# a wrong password. Hashing a placeholder per request instead would double the
+# cost of every failed login.
+TIMING_EQUALISER_HASH = hash_password("timing-equalising-placeholder")
+
 
 def record_audit(
     db: Session,
@@ -61,7 +66,7 @@ def authenticate(db: Session, email: str, password: str) -> User | None:
 
     if user is None:
         # Compare against a dummy hash so this path costs the same as a real one.
-        verify_password(password, hash_password("timing-equalising-placeholder"))
+        verify_password(password, TIMING_EQUALISER_HASH)
         record_audit(db, "auth.login", resource=email, outcome="failure")
         db.commit()
         return None
