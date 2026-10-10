@@ -12,7 +12,22 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Render's free instance sleeps after about fifteen idle minutes and the first
+  // request then pays a cold start - measured 31.8s here against 0.39s warm. This
+  // sits above the worst case so a sleeping server is waited out rather than
+  // aborted into the mock fallback, which would show fabricated rows as real.
+  timeout: 90000,
 });
+
+// /health lives at the service root, not under the API prefix. A relative base
+// (VITE_API_BASE_URL=/api/v1) means the API shares this origin.
+const API_ORIGIN = API_BASE_URL.startsWith('http')
+  ? new URL(API_BASE_URL).origin
+  : window.location.origin;
+
+// Called on page load so the cold start overlaps with signing in and navigating
+// instead of landing on a data page's spinner.
+export const wakeBackend = () => fetch(`${API_ORIGIN}/health`).catch(() => {});
 
 // Request interceptor to attach JWT token when integrated with backend
 apiClient.interceptors.request.use(
